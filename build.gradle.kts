@@ -1,6 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.8.0"
-    id("road-extraction")
+    application
 }
 
 group = "com.myproject"
