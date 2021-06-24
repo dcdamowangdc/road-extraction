@@ -1,29 +1,13 @@
 package comm
 
+import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
 
 class Spark_Session {//集群配置信息
-  val warehouseLocation: String = System.getProperty("user.dir") + "spark-warehouse" // default location for managed databases and tables
+  val conf = new SparkConf().setMaster("local[*]")
   val spark: SparkSession = SparkSession.
     builder().
-    config("spark.sql.warehouse.dir", warehouseLocation).
-    enableHiveSupport().
-    config("spark.serializer", "org.apache.spark.serializer.KryoSerializer").
-    config("spark.sql.codegen",value = true).
-    config("spark.sql.unsafe.enabled",value = true).
-    config("spark.shuffle.manager","tungsten-sort").
-    config("spark.memory.storageFraction",0.4).
-    config("spark.shuffle.service.enable", value = true).
-    config("spark.default.parallelizm",500).
-    config("spark.sql.shuffle.partitions",500).
-    config("spark.sql.auto.repartition", value = true).
-    config("spark.debug.maxToStringFields",300).
-    config("spark.sql.inMemoryColumnStorage.compressed", value = true).
-    config("es.http.timeout","100m").
-    config("es.index.auto.create", "true").
-    config("spark.yarn.executor.memoryOverhead","2048m").
-    config("spark.sql.codegen.wholeStage",value = false).
-    config("spark.locality.wait", 0).
+    config(conf).
     getOrCreate()
 }
 //
