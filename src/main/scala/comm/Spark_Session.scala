@@ -21,8 +21,6 @@ class Spark_Session {//集群配置信息
     config("spark.sql.inMemoryColumnStorage.compressed", value = true).
     config("es.http.timeout","100m").
     config("es.index.auto.create", "true").
-    config("es.nodes", "192.168.50.47").
-    config("es.port","9200").
     config("spark.yarn.executor.memoryOverhead","2048m").
     config("spark.sql.codegen.wholeStage",value = false).
     config("spark.locality.wait", 0).
