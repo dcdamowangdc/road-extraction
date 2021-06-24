@@ -1,4 +1,4 @@
-package com.xmhns.dm.yun.roadextraction.comm
+package comm
 
 import org.apache.spark.sql.SparkSession
 

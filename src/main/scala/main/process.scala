@@ -1,8 +1,6 @@
-package com.xmhns.dm.yun.roadextraction.main
+package main
 
-import com.xmhns.dm.yun.roadextraction.comm.Spark_Session.spark
-import com.xmhns.dm.yun.roadextraction.comm.hive_comm.hive_insert_dc
-import com.xmhns.dm.yun.roadextraction.process.ProcessStep
+import comm.Spark_Session.spark
 
 object process {
   def main(args: Array[String]): Unit = {
