@@ -81,52 +81,18 @@ object ProcessStep {
     println(s"压缩后的长度：${rList.length}")
 
     val saveOption1 = Map("header" -> "true", "path" -> "./data/compGps")
+    println("    写入compGps")
     compGps.coalesce(1).write.format("com.databricks.spark.csv")
       .mode(SaveMode.Overwrite).options(saveOption1).save()
 
-    calJoin(compGps)
+    val v_compGps = compGps.select("car_no", "rcrd_time", "lo_lgt", "lo_ltt", "lo_drc")
+    calJoin(v_compGps, R)
 
     // 计算GPS点的相似关系
-//    val midLgtLtt = spark.sql(
-//      s"""
-//         |select min(lo_lgt) + (max(lo_lgt) - min(lo_lgt))/4,
-//         |min(lo_lgt) + (max(lo_lgt) - min(lo_lgt))/2,
-//         |min(lo_lgt) + (max(lo_lgt) - min(lo_lgt))*3/4
-//         |  from bigdata_test.$compGpsTn
-//         |""".stripMargin).take(1)(0)
-//
-//    val Lgt1 = midLgtLtt.getDouble(0)
-//    val Lgt2 = midLgtLtt.getDouble(1)
-//    val Lgt3 = midLgtLtt.getDouble(2)
-//
-//
-//    val dataDf = spark.sql(
-//      s"""
-//         |select car_no, rcrd_time,lo_lgt,lo_ltt,lo_drc from bigdata_test.$compGpsTn
-//         |""".stripMargin).cache()
-//
-//    val dataDf1 = dataDf.filter(col("lo_lgt")<Lgt1)
-//    val dataDf2 = dataDf.filter(col("lo_lgt")>=Lgt1 && col("lo_lgt")<Lgt2)
-//    val dataDf3 = dataDf.filter(col("lo_lgt")>=Lgt2 && col("lo_lgt")<Lgt3)
-//    val dataDf4 = dataDf.filter(col("lo_lgt")>=Lgt3)
-//
-//    val df1 = calJoin(dataDf1, R)
-//    val df2 = calJoin(dataDf2, R)
-//    val df3 = calJoin(dataDf3, R)
-//    val df4 = calJoin(dataDf4, R)
-//
-//    val df = df1.union(df2).union(df3).union(df4)
-//
-//    // 插入 gps_rel
-//    hive_insert_dc(df, gpsRelTn)
-//    val t3 = System.nanoTime()
-//    println(f"gps_rel run time: ${getTime(t2, t3)}%1.2f minutes")
-//
-//    gpsTail()
   }
 
-  def calJoin(dataV:DataFrame, R:Double):DataFrame={
-    val dataDf = dataV
+  def calJoin(v_compGps:DataFrame, R:Double):DataFrame={
+    val dataDf = v_compGps
 
     val gpsData1 = dataDf.withColumnRenamed("lo_lgt","x0")
       .withColumnRenamed("lo_ltt","y0")
@@ -139,23 +105,26 @@ object ProcessStep {
       .withColumnRenamed("lo_drc","drca")
 
     // 分类聚合
+    // 40米内都属于缓冲区中，取15米内的点计算
+    //      get_distance(gpsData1("x0"),gpsData1("y0"),gpsData2("xa"),gpsData2("ya"))<=40
     val gpsRel = gpsData1.join(gpsData2,
-      // 40米内都属于缓冲区中，取15米内的点计算
-      //      get_distance(gpsData1("x0"),gpsData1("y0"),gpsData2("xa"),gpsData2("ya"))<=40
       get_distance(gpsData1("x0"),gpsData1("y0"),gpsData2("xa"),gpsData2("ya"))<=30
         &&get_drc(gpsData1("drc0"),gpsData2("drca"))<=R,"left")
       .withColumn("dist", get_distance(gpsData1("x0"),gpsData1("y0"),gpsData2("xa"),gpsData2("ya")))
       .withColumn("dist15", when(col("dist")<=15,1).otherwise(0))
       .withColumn("drc0", to_r(col("drc0")))
       .drop("x0", "y0", "xa", "ya", "drca", "dist")
+    val saveOption2 = Map("header" -> "true", "path" -> "./data/gpsRel")
+
+    println("    写入gpsRel")
+    gpsRel.coalesce(1).write.format("com.databricks.spark.csv")
+      .mode(SaveMode.Overwrite).options(saveOption2).save()
 
     gpsRel
   }
 
   def gpsTail(){
-
-    val t1 = System.nanoTime()
-
+//    val t1 = System.nanoTime()
     val compGpsTn = s"comp_gps"
     val gpsRelTn = s"gps_rel"
     val compGpsTn2 = s"comp_gps2"
