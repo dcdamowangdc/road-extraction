@@ -8,7 +8,7 @@ object Step1 {
   def main(args: Array[String]): Unit = {
     // 1、获取Ty的gps轨迹数据
     val gpsData = spark.read.option("header", "true").csv("./data/gps.csv")
-      .filter(col("rcrd_date")==="2020-12-07" && col("rcrd_time")<="2020-12-07 18:28:01:025")
+//      .filter(col("rcrd_date")==="2020-12-07" && col("rcrd_time")<="2020-12-07 18:28:01:025")
     // 2、压缩并计算GPS关系
     ProcessStep.compressAndCalRel(gpsData)
 
