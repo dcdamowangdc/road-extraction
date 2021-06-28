@@ -85,8 +85,8 @@ object ProcessStep {
     compGps.coalesce(1).write.format("com.databricks.spark.csv")
       .mode(SaveMode.Overwrite).options(saveOption1).save()
 
-//    val v_compGps = compGps.select("car_no", "rcrd_time", "lo_lgt", "lo_ltt", "lo_drc")
-//    calJoin(v_compGps, R)
+    val v_compGps = compGps.select("car_no", "rcrd_time", "lo_lgt", "lo_ltt", "lo_drc")
+    calJoin(v_compGps, R)
 
     // 计算GPS点的相似关系
   }
